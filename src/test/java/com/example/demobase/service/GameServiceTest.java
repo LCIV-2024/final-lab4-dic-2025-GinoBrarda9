@@ -55,8 +55,37 @@ class GameServiceTest {
 
     @Test
     void testStartGame_Success() {
-        // TODO: Implementar el test para testStartGame_Success
-        
+        // Given
+        when(playerRepository.findById(1L)).thenReturn(Optional.of(player));
+        when(wordRepository.findRandomWord()).thenReturn(Optional.of(word));
+        when(gameInProgressRepository.findByJugadorAndPalabra(1L, 1L)).thenReturn(Optional.empty());
+
+        GameInProgress newGame = new GameInProgress();
+        newGame.setId(1L);
+        newGame.setJugador(player);
+        newGame.setPalabra(word);
+        newGame.setLetrasIntentadas("");
+        newGame.setIntentosRestantes(7);
+        newGame.setFechaInicio(LocalDateTime.now());
+
+        when(wordRepository.save(any(Word.class))).thenReturn(word);
+        when(gameInProgressRepository.save(any(GameInProgress.class))).thenReturn(newGame);
+
+        // When
+        GameResponseDTO result = gameService.startGame(1L);
+
+        // Then
+        assertNotNull(result);
+        assertEquals("___________", result.getPalabraOculta()); // PROGRAMADOR tiene 11 caracteres
+        assertEquals(0, result.getLetrasIntentadas().size());
+        assertEquals(7, result.getIntentosRestantes());
+        assertFalse(result.getPalabraCompleta());
+        assertEquals(0, result.getPuntajeAcumulado());
+
+        verify(playerRepository, times(1)).findById(1L);
+        verify(wordRepository, times(1)).findRandomWord();
+        verify(wordRepository, times(1)).save(any(Word.class));
+        verify(gameInProgressRepository, times(1)).save(any(GameInProgress.class));
     }
 
     @Test
